@@ -1,0 +1,28 @@
+#summary How to get up and running with BigCache
+#labels Featured
+
+= Dependencies =
+
+  * [http://jets3t.s3.amazonaws.com/downloads.html jets3t]
+  * commons-logging (included in jets3t distro)
+  * commons-httpclient (included in jets3t distro)
+  * commons-codec (included in jets3t distro)
+
+= Details =
+
+==Create the Cache==
+{{{
+// it would be wise to do this only once and reuse it
+BigCache bigcache = new S3Cache(AWS_ACCESS_KEY, AWS_SECRET_KEY, "my-caching-bucket-name");
+}}}
+
+==Put an object into the cache== 
+{{{
+// the 3600 is how long the object will live for, this one will expire after 1 hour
+bigcache.put("somekey", myObject, 3600);
+}}}
+
+==Get an object from the cache==
+{{{
+Object o = bigcache.get("somekey");
+}}}
