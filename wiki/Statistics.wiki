@@ -1,0 +1,21 @@
+#summary Cache Statistics
+
+= How to =
+ 
+{{{
+Statistics statistics = BigCache.getStatistics();
+}}}
+
+The Statistics object has: 
+
+{{{
+    int getGets();
+
+    int getHits();
+
+    int getMisses();
+
+    int getPuts();
+
+    int getRemoves();
+}}}
