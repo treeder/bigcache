@@ -1,5 +1,9 @@
 #summary Cache Statistics
 
+= Introduction =
+
+If you want to know how the cache is interacting with S3, you can a Statistics object to find out. 
+
 = How to =
  
 {{{
