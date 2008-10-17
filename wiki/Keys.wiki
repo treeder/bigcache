@@ -1,0 +1,11 @@
+#summary Tips and tricks for cache keys
+
+= Introduction =
+
+Tips and tricks.
+
+
+= Details =
+
+  * Use forward slashes in your keys to group them like a directory structure so when you view them in S3Fox you can drill into them. For instance, you may have objects cached for your users so you could store the objects in a key like "USER_ID/OBJECT_ID" or "USER_ID/widgets/widget123"
+
