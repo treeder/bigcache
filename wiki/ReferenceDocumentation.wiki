@@ -4,5 +4,6 @@
 = Table of Contents =
 
   # GettingStarted
+  # [Keys] - Tips and tricks for cache keys
   # [Statistics]
   # ExpiredObjects
