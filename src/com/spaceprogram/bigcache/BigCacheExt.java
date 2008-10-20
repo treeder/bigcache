@@ -34,5 +34,9 @@ public interface BigCacheExt extends BigCache {
      */
     void putAsync(ExecutorService executorService, String key, Serializable object, int expiryTimeInSeconds);
 
+    /**
+     * Get statistics for the cache providing put counts, get counts, hit/miss counts, etc.
+     * @return
+     */
     Statistics getStatistics();
 }

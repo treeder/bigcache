@@ -34,7 +34,7 @@ public class JaxbTests extends S3CacheTests{
         super.testSet();
     }
 
-
+    
     @Test
     public void testEnums() throws Exception {
         String key = "class-with-enums-id";

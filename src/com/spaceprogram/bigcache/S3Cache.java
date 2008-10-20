@@ -133,9 +133,10 @@ public class S3Cache implements BigCache {
             }
             if (expired(s3Object)) {
                 logger.fine(("object expired, removing. key=" + key));
-                System.out.println("object expired, removing. key=" + key);
+//                System.out.println("object expired, removing. key=" + key);
                 s3Object.closeDataInputStream();
-                remove(key);
+                // todo: deal with this remove some other way, too slow
+//                remove(key);
                 return null;
             }
             statistics.hits.incrementAndGet();
