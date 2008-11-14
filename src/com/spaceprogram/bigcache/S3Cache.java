@@ -1,8 +1,7 @@
 package com.spaceprogram.bigcache;
 
-import com.spaceprogram.bigcache.marshallers.Marshaller;
-import com.spaceprogram.bigcache.marshallers.SerializationMarshaller;
 import com.spaceprogram.bigcache.marshallers.JAXBMarshaller;
+import com.spaceprogram.bigcache.marshallers.Marshaller;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
@@ -15,6 +14,9 @@ import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,11 +34,17 @@ public class S3Cache implements BigCache {
     private S3Service s3Service;
     private S3Bucket bucket;
     public static String EXPIRES_META_NAME = "cache-expires";
+    public static final String CLASS_META_NAME = "class-name";
     private AtomicStatistics statistics = new AtomicStatistics();
     private static Logger logger = Logger.getLogger(S3Cache.class.getName());
-    private Marshaller marshaller = new SerializationMarshaller();
-    public static final String CLASS_META_NAME = "class-name";
+    private Marshaller marshaller = new JAXBMarshaller();
+    private ExecutorService executorService;
 
+    /**
+     * @param awsAccessKey
+     * @param awsSecretKey
+     * @param bucketName   the name of the S3 bucket you'd like to store your cache objects in
+     */
     public S3Cache(String awsAccessKey, String awsSecretKey, String bucketName) {
         this.awsAccessKey = awsAccessKey;
         this.awsSecretKey = awsSecretKey;
@@ -52,16 +60,45 @@ public class S3Cache implements BigCache {
         }
     }
 
+    /**
+     * @param awsAccessKey
+     * @param awsSecretKey
+     * @param bucketName      the name of the S3 bucket you'd like to store your cache objects in
+     * @param executorService must pass this in if you plan to use asynchronous methods.
+     */
+    public S3Cache(String awsAccessKey, String awsSecretKey, String bucketName, ExecutorService executorService) {
+        this.awsAccessKey = awsAccessKey;
+        this.awsSecretKey = awsSecretKey;
+        this.bucketName = bucketName;
+        this.executorService = executorService;
+
+        try {
+            AWSCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
+            s3Service = new RestS3Service(awsCredentials);
+            bucket = s3Service.createBucket(bucketName);
+            System.out.println("S3Cache: Created caching bucket: " + bucket.getName());
+        } catch (S3ServiceException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args) {
-        long x = System.currentTimeMillis() + ((long)Integer.MAX_VALUE * 1000L);
+        long x = System.currentTimeMillis() + ((long) Integer.MAX_VALUE * 1000L);
         System.out.println("x=" + x);
         System.out.println("y=" + (Long.MAX_VALUE - ((long) Integer.MAX_VALUE * 1000L)));
     }
 
+    /**
+     *
+     * @param key
+     * @param object
+     * @param expiryTimeInSeconds
+     * @throws Exception
+     */
     public void put(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
         try {
             S3Object s3o = new S3Object(key);
-            s3o.addMetadata(EXPIRES_META_NAME, Long.toString(System.currentTimeMillis() + ((long)expiryTimeInSeconds * 1000L)));
+            s3o.addMetadata(EXPIRES_META_NAME, Long.toString(System.currentTimeMillis() + ((long) expiryTimeInSeconds * 1000L)));
             marshaller.addHeaders(s3o, object);
             byte[] byteArray = marshaller.marshal(object);
 //            System.out.println("writing: " + new String(byteArray));
@@ -73,11 +110,31 @@ public class S3Cache implements BigCache {
             bais.close(); // no effect, but just for good practice
         } catch (Exception e) {
             throw e;
-        } 
-
+        }
     }
 
-    public void add(String key, Serializable object, int expiryTimeInSeconds) throws Exception{
+    /**
+     * Puts an object to the cache in the background. Returns immediately.
+     *
+     * @param key
+     * @param object
+     * @param expiryTimeInSeconds
+     * @return
+     */
+    public Future<Object> putAsync(String key, Serializable object, int expiryTimeInSeconds){
+         checkExecutor();
+        Put put = new Put(this, key, object, expiryTimeInSeconds);
+        return executorService.submit(put);
+    }
+
+    /**
+     * Just because memcached has it: adds to the cache, only if it doesn't already exist (get_foo() should use this)
+     * @param key
+     * @param object
+     * @param expiryTimeInSeconds
+     * @throws Exception
+     */
+    public void add(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
         // user getObjectDetails to see if it exists
         try {
             S3Object s3Object = s3Service.getObjectDetails(bucket, key);
@@ -89,6 +146,13 @@ public class S3Cache implements BigCache {
         }
     }
 
+    /**
+     * Just because memcached has it: sets in the cache only if the key already exists (not as useful, only for completeness)
+     * @param key
+     * @param object
+     * @param expiryTimeInSeconds
+     * @throws Exception
+     */
     public void replace(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
         try {
             S3Object s3Object = s3Service.getObjectDetails(bucket, key);
@@ -114,6 +178,26 @@ public class S3Cache implements BigCache {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Gets an object from the cache in the background. Useful in various scenarios, but one in
+     * particular is for getting objects in a webapp before rendering the view. When rendering the view
+     * you call get() on the future that is returned from this method.
+     *
+     * @param key
+     * @return
+     */
+    public Future<Serializable> getAsync(String key) {
+        checkExecutor();
+        Get get = new Get(this, key);
+        return executorService.submit(get);
+    }
+
+    private void checkExecutor() {
+        if(executorService == null){
+            throw new BigCacheRuntimeException("ExecutorService is null in S3Cache. Can not perform operation.");
+        }
     }
 
     public Serializable get(String key) throws Exception {
@@ -184,5 +268,10 @@ public class S3Cache implements BigCache {
 
     public void setMarshaller(JAXBMarshaller marshaller) {
         this.marshaller = marshaller;
+    }
+
+
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 }
