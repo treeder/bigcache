@@ -9,4 +9,8 @@ public class BigCacheException extends Exception {
     public BigCacheException(Exception e) {
         super(e);
     }
+
+    public BigCacheException(String s) {
+        super(s);
+    }
 }

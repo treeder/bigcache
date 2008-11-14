@@ -1,7 +1,5 @@
 package com.spaceprogram.bigcache;
 
-import com.caucho.hessian.io.Hessian2Input;
-import com.caucho.hessian.io.Hessian2Output;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
@@ -27,7 +25,7 @@ import java.util.List;
  * Date: Sep 22, 2008
  * Time: 1:39:36 AM
  */
-public class PerformanceTests {
+public class SerializationPerformanceTests {
 
     /**
      * This test compares a bunch of serializers.
@@ -151,7 +149,7 @@ public class PerformanceTests {
                 totalFlexIn += duration;*/
 
 
-                org.jabsorb.JSONSerializer jsonSerializer = new org.jabsorb.JSONSerializer();
+                /*org.jabsorb.JSONSerializer jsonSerializer = new org.jabsorb.JSONSerializer();
                 jsonSerializer.registerDefaultSerializers();
                 start = System.currentTimeMillis();
                 s = jsonSerializer.toJSON(testOb);
@@ -166,7 +164,7 @@ public class PerformanceTests {
                 duration = System.currentTimeMillis() - start;
 //                System.out.println("test=" + testOb);
                 jabsorbT.addIn(duration);
-
+*/
                 /* bos = new ByteArrayOutputStream();
                 JBossObjectOutputStream outJboss = new JBossObjectOutputStream(bos);
                 start = System.currentTimeMillis();
@@ -185,7 +183,7 @@ public class PerformanceTests {
                 duration = System.currentTimeMillis() - start;
                 jboss.addIn(duration);*/
 
-                bos = new ByteArrayOutputStream();
+               /* bos = new ByteArrayOutputStream();
                 Hessian2Output outh = new Hessian2Output(bos);
                 start = System.currentTimeMillis();
                 outh.writeObject(testOb);
@@ -201,7 +199,7 @@ public class PerformanceTests {
                 o = inh.readObject();
                 inh.close();
                 duration = System.currentTimeMillis() - start;
-                hessian.addIn(duration);
+                hessian.addIn(duration);*/
 
             }
 
