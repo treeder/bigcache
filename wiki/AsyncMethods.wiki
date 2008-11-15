@@ -1,0 +1,32 @@
+#summary getAsync and putAsync
+#labels Featured
+
+= Details =
+
+Usage is very similar to the normal put and get methods except that each method returns a Future instead of the object.
+
+== putAsync ==
+
+Returns immediately and puts the object into the cache in a background thread.
+{{{
+bigcache.putAsync(key, object, expiresInSeconds);
+}}}
+
+If a problem occurred while putting the object, you might not notice since it happened in the background. In the case where you need to know, you can use:
+{{{
+Future future = bigcache.putAsync(key, object, expiresInSeconds);
+...
+// You can call future.get() later to see if any exception was thrown
+}}}
+
+== getAsync ==
+Gets an object from the cache in the background. 
+
+{{{
+Future future = getAsync(String key);
+...
+// sometime in the future
+MyObject myObject = future.get();
+}}}
+
+Useful in various scenarios, but one in particular is for getting objects in a webapp before rendering the view. When rendering the view, you then call get() on the Future.
