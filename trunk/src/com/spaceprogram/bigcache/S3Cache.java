@@ -16,7 +16,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -92,13 +91,13 @@ public class S3Cache implements BigCache {
      *
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      * @throws Exception
      */
-    public void put(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
+    public void put(String key, Serializable object, int expiresInSeconds) throws Exception {
         try {
             S3Object s3o = new S3Object(key);
-            s3o.addMetadata(EXPIRES_META_NAME, Long.toString(System.currentTimeMillis() + ((long) expiryTimeInSeconds * 1000L)));
+            s3o.addMetadata(EXPIRES_META_NAME, Long.toString(System.currentTimeMillis() + ((long) expiresInSeconds * 1000L)));
             marshaller.addHeaders(s3o, object);
             byte[] byteArray = marshaller.marshal(object);
 //            System.out.println("writing: " + new String(byteArray));
@@ -118,12 +117,12 @@ public class S3Cache implements BigCache {
      *
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      * @return
      */
-    public Future<Object> putAsync(String key, Serializable object, int expiryTimeInSeconds){
+    public Future<Object> putAsync(String key, Serializable object, int expiresInSeconds){
          checkExecutor();
-        Put put = new Put(this, key, object, expiryTimeInSeconds);
+        Put put = new Put(this, key, object, expiresInSeconds);
         return executorService.submit(put);
     }
 
@@ -131,15 +130,15 @@ public class S3Cache implements BigCache {
      * Just because memcached has it: adds to the cache, only if it doesn't already exist (get_foo() should use this)
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      * @throws Exception
      */
-    public void add(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
+    public void add(String key, Serializable object, int expiresInSeconds) throws Exception {
         // user getObjectDetails to see if it exists
         try {
             S3Object s3Object = s3Service.getObjectDetails(bucket, key);
             if (s3Object == null || expired(s3Object)) {
-                put(key, object, expiryTimeInSeconds);
+                put(key, object, expiresInSeconds);
             }
         } catch (S3ServiceException e) {
             throw e;
@@ -150,15 +149,15 @@ public class S3Cache implements BigCache {
      * Just because memcached has it: sets in the cache only if the key already exists (not as useful, only for completeness)
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      * @throws Exception
      */
-    public void replace(String key, Serializable object, int expiryTimeInSeconds) throws Exception {
+    public void replace(String key, Serializable object, int expiresInSeconds) throws Exception {
         try {
             S3Object s3Object = s3Service.getObjectDetails(bucket, key);
             if (s3Object != null) {
                 if (!expired(s3Object)) {
-                    put(key, object, expiryTimeInSeconds);
+                    put(key, object, expiresInSeconds);
                 }
             }
         } catch (S3ServiceException e) {

@@ -1,17 +1,10 @@
 package com.spaceprogram.bigcache;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -24,26 +17,7 @@ import java.util.concurrent.Future;
  * Date: Aug 28, 2008
  * Time: 10:31:19 AM
  */
-public class S3CacheTests {
-    static S3Cache s3cache;
-
-    @BeforeClass
-    public static void setupCache() throws IOException {
-        System.out.println("Setting up cache in S3CacheTests");
-        Properties props = new Properties();
-        InputStream is = S3CacheTests.class.getResourceAsStream("/aws-auth.properties");
-        if(is == null){
-            throw new RuntimeException("No aws-auth.properties file found.");
-        }
-        props.load(is);
-        ExecutorService executorService = Executors.newFixedThreadPool(25);
-        s3cache = new S3Cache(props.getProperty("accessKey"), props.getProperty("secretKey"), props.getProperty("bucketName"), executorService);
-    }
-
-    @AfterClass
-    public static void shutdown(){
-        s3cache.getExecutorService().shutdown();
-    }
+public class S3CacheTests extends BaseCacheTest {
 
     @Test
     public void testSet() throws Exception {

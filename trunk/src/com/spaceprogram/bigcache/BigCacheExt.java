@@ -21,18 +21,18 @@ public interface BigCacheExt extends BigCache {
      * @param delay                    delay until executed
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      */
-    void putDelayed(ScheduledExecutorService scheduledExecutorService, long delay, String key, Serializable object, int expiryTimeInSeconds);
+    void putDelayed(ScheduledExecutorService scheduledExecutorService, long delay, String key, Serializable object, int expiresInSeconds);
 
     /**
      * Puts an object into the cache asynchronously using the executorService
      * @param executorService
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      */
-    void putAsync(ExecutorService executorService, String key, Serializable object, int expiryTimeInSeconds);
+    void putAsync(ExecutorService executorService, String key, Serializable object, int expiresInSeconds);
 
     /**
      * Get statistics for the cache providing put counts, get counts, hit/miss counts, etc.

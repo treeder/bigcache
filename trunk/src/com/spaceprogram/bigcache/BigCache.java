@@ -4,6 +4,7 @@ import org.jets3t.service.S3ServiceException;
 
 import java.io.Serializable;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
  * Main cache interface.
@@ -18,27 +19,27 @@ public interface BigCache {
      * Unconditional set.
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      * @throws S3ServiceException
      * @throws IOException
      */
-    void put(String key, Serializable object, int expiryTimeInSeconds) throws Exception;
+    void put(String key, Serializable object, int expiresInSeconds) throws Exception;
 
     /**
      * Adds to cache only if it doesn't exist.
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      */
-    void add(String key, Serializable object, int expiryTimeInSeconds) throws Exception;
+    void add(String key, Serializable object, int expiresInSeconds) throws Exception;
 
     /**
      * Sets in cache only if it does exist.
      * @param key
      * @param object
-     * @param expiryTimeInSeconds
+     * @param expiresInSeconds
      */
-    void replace(String key, Serializable object, int expiryTimeInSeconds) throws Exception;
+    void replace(String key, Serializable object, int expiresInSeconds) throws Exception;
 
     /**
      * Gets the object from the cache.
@@ -51,4 +52,26 @@ public interface BigCache {
      * @param key
      */
     void remove(String key) throws Exception;
+
+    /**
+     * Puts an object to the cache in the background. Returns immediately.
+     *
+     * @param key
+     * @param object
+     * @param expiresInSeconds
+     * @return
+     */
+    Future<Object> putAsync(String key, Serializable object, int expiresInSeconds);
+
+    /**
+     * Gets an object from the cache in the background. Returns immediately.
+     * 
+     * Useful in various scenarios, but one in
+     * particular is for getting objects in a webapp before rendering the view. When rendering the view
+     * you call get() on the future that is returned from this method.
+     *
+     * @param key
+     * @return
+     */
+    Future<Serializable> getAsync(String key);
 }
