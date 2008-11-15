@@ -14,9 +14,9 @@ public class CacheItem implements Serializable {
     public CacheItem() {
     }
 
-    public CacheItem(Serializable object, int expiryTimeInSeconds) {
+    public CacheItem(Serializable object, int expiresInSeconds) {
         this.object = object;
-        this.expirationDate = System.currentTimeMillis() + expiryTimeInSeconds;
+        this.expirationDate = System.currentTimeMillis() + expiresInSeconds;
     }
 
     public long getExpirationDate() {
