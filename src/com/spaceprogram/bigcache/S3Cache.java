@@ -174,6 +174,7 @@ public class S3Cache implements BigCache {
         }
         long expires = Long.parseLong(expiryAsString);
         if (expires < System.currentTimeMillis()) {
+            logger.fine("Object expired.  expired-header=" + expires);
             return true;
         }
         return false;
