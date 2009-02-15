@@ -4,19 +4,20 @@ import java.util.concurrent.Callable;
 
 /**
  * User: treeder
- * Date: Nov 14, 2008
- * Time: 10:25:35 AM
+ * Date: Jan 13, 2009
+ * Time: 7:47:45 PM
  */
-public class Get implements Callable<Object> {
+public class Remove implements Callable<Object> {
     private BigCache cache;
     private String key;
 
-    public Get(BigCache cache, String key) {
+    public Remove(BigCache cache, String key) {
         this.cache = cache;
         this.key = key;
     }
 
     public Object call() throws Exception {
-        return cache.get(key);
+        cache.remove(key);
+        return null;
     }
 }

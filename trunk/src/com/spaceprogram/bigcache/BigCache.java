@@ -45,11 +45,12 @@ public interface BigCache {
      * Gets the object from the cache.
      * @param key
      */
-    Serializable get(String key) throws Exception;
+    Object get(String key) throws Exception;
 
     /**
      * Removes the object from the cache.
      * @param key
+     * @throws Exception
      */
     void remove(String key) throws Exception;
 
@@ -73,5 +74,15 @@ public interface BigCache {
      * @param key
      * @return
      */
-    Future<Serializable> getAsync(String key);
+    Future<Object> getAsync(String key);
+
+     /**
+     * Removes an object from the cache in the background. Returns immediately.
+     *
+     *
+     *
+     * @param key
+     * @return Future.get always returns null, but you can still use it to check for exceptions.
+     */
+    Future<Object> removeAsync(String key);
 }

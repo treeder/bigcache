@@ -1,7 +1,6 @@
 package com.spaceprogram.bigcache.marshallers;
 
 import org.jets3t.service.S3ServiceException;
-import org.jets3t.service.model.S3Object;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,14 +27,18 @@ public class SerializationMarshaller implements Marshaller {
         return byteArray;
     }
 
-    public Object unmarshal(InputStream inputStream, S3Object s3object) throws IOException, S3ServiceException, ClassNotFoundException {
+    public Object unmarshal(InputStream inputStream, String className) throws IOException, S3ServiceException, ClassNotFoundException {
         ObjectInputStream in = new ObjectInputStream(inputStream);
         Object o = in.readObject();
         in.close();
         return o;
     }
 
-    public void addHeaders(S3Object s3o, Serializable object) {
+    public Object unmarshal(String className, CharSequence buffer) throws Exception {
+        throw new java.lang.UnsupportedOperationException();
+    }
 
+    public String marshalToString(Serializable object) {
+        throw new UnsupportedOperationException();
     }
 }

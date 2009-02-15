@@ -1,13 +1,11 @@
 package com.spaceprogram.bigcache;
 
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
+import org.junit.Test;
+import org.junit.Assert;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.Future;
 
 /**
  * User: treeder
@@ -15,23 +13,75 @@ import java.util.concurrent.Executors;
  * Time: 5:32:49 PM
  */
 public class BaseCacheTest {
-    static S3Cache s3cache;
+    private BigCache bigCache;
 
-    @BeforeClass
-    public static void setupCache() throws IOException {
-        System.out.println("Setting up cache in S3CacheTests");
-        Properties props = new Properties();
-        InputStream is = S3CacheTests.class.getResourceAsStream("/aws-auth.properties");
-        if(is == null){
-            throw new RuntimeException("No aws-auth.properties file found.");
-        }
-        props.load(is);
-        ExecutorService executorService = Executors.newFixedThreadPool(25);
-        s3cache = new S3Cache(props.getProperty("accessKey"), props.getProperty("secretKey"), props.getProperty("bucketName"), executorService);
+    public BaseCacheTest(BigCache cache) {
+
+        bigCache = cache;
     }
 
-    @AfterClass
-    public static void shutdown(){
-        s3cache.getExecutorService().shutdown();
+    @Test
+    public void testSet() throws Exception {
+        String key = "x";
+        String s = "This is my data for the cache.";
+        bigCache.put(key, s, 3600);
+        String ret = (String) bigCache.get(key);
+        Assert.assertEquals(s, ret);
+    }
+
+    @Test
+    public void testGetNotExists() throws Exception {
+        String key = "this-key-does-not-exist";
+        String ret = (String) bigCache.get(key);
+        Assert.assertNull(ret);
+    }
+
+    @Test
+    public void testRemoveNotExists() throws Exception {
+        String key = "this-key-does-not-exist";
+        bigCache.remove(key);
+    }
+
+    @Test
+    public void testExpired() throws Exception {
+        String key = "shortExpiry";
+        String s = "This is my data for the cache.";
+        bigCache.put(key, s, 1);
+        Thread.sleep(2000);
+        String ret = (String) bigCache.get(key);
+        Assert.assertNull(ret);
+    }
+
+    @Test
+    public void testGetBunch() throws Exception {
+          for(int i = 0; i < 50; i++){
+            SomeObject2 someObject2 = new SomeObject2("name" + i);
+            bigCache.put("key" + i, someObject2, 3600);
+        }
+        long start = System.currentTimeMillis();
+        for(int i = 0; i < 50; i++) {
+            Object o = bigCache.get("key" + i);
+            System.out.println(o);
+        }
+         System.out.println("Duration: " + (System.currentTimeMillis() - start));
+    }
+
+    @Test
+    public void testGetAsync() throws Exception {
+        for(int i = 0; i < 50; i++){
+            SomeObject2 someObject2 = new SomeObject2("name" + i);
+            bigCache.put("key" + i, someObject2, 3600);
+        }
+        long start = System.currentTimeMillis();
+        List<Future> fromCache = new ArrayList<Future>();
+        for(int i = 0; i < 50; i++){
+            fromCache.add(bigCache.getAsync("key" + i));
+        }
+        for (Future future : fromCache) {
+            System.out.println("future=" + future);
+            Object o = future.get();
+            System.out.println("future.get=" + o);
+        }
+        System.out.println("Duration: " + (System.currentTimeMillis() - start));
     }
 }

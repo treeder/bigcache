@@ -8,10 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Time: 12:31:36 PM
  */
 public class AtomicStatistics implements Statistics {
-    AtomicInteger puts = new AtomicInteger();
-    AtomicInteger gets = new AtomicInteger();
-    AtomicInteger removes = new AtomicInteger();
-    AtomicInteger hits = new AtomicInteger();
+    public AtomicInteger puts = new AtomicInteger();
+    public AtomicInteger gets = new AtomicInteger();
+    public AtomicInteger removes = new AtomicInteger();
+    public AtomicInteger hits = new AtomicInteger();
 
     public int getGets() {
         return gets.get();
