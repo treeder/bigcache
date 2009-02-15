@@ -2,19 +2,46 @@ package com.spaceprogram.bigcache;
 
 import org.apache.commons.lang.time.StopWatch;
 import org.junit.Test;
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.concurrent.Future;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.Serializable;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * User: treeder
  * Date: Nov 14, 2008
  * Time: 5:32:12 PM
  */
-public class PerformanceTests extends BaseCacheTest {
+public class PerformanceTests {
 
+     static S3Cache s3cache;
+
+    @BeforeClass
+    public static void setupCache() throws IOException {
+        System.out.println("Setting up cache in S3CacheTests");
+        Properties props = new Properties();
+        InputStream is = S3CacheTests.class.getResourceAsStream("/aws-auth.properties");
+        if (is == null) {
+            throw new RuntimeException("No aws-auth.properties file found.");
+        }
+        props.load(is);
+        ExecutorService executorService = Executors.newFixedThreadPool(25);
+        s3cache = new S3Cache(props.getProperty("accessKey"), props.getProperty("secretKey"), props.getProperty("bucketName"), executorService);
+    }
+
+    @AfterClass
+    public static void shutdown() {
+        s3cache.getExecutorService().shutdown();
+    }
+    
     @Test
     public void testPuts() throws Exception {
         StopWatch stopWatch = new StopWatch();
@@ -66,7 +93,7 @@ public class PerformanceTests extends BaseCacheTest {
          List<Future> futures = new ArrayList<Future>();
         for (int i = 0; i < 100; i++) {
             String id = "id-" + i;
-            Future<Serializable> f = s3cache.getAsync(id);
+            Future f = s3cache.getAsync(id);
             futures.add(f);
         }
           // make sure all objects are done getting

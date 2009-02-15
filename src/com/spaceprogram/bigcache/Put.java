@@ -12,12 +12,12 @@ import java.util.logging.Logger;
  */
 public class Put implements Callable {
     private static Logger logger = Logger.getLogger(Put.class.getName());
-    private S3Cache cache;
+    private BigCache cache;
     private String key;
     private Serializable object;
     private int expiresInSeconds;
 
-    public Put(S3Cache cache, String key, Serializable object, int expiresInSeconds) {
+    public Put(BigCache cache, String key, Serializable object, int expiresInSeconds) {
         this.cache = cache;
         this.key = key;
         this.object = object;
